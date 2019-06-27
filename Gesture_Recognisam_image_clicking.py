@@ -1,43 +1,14 @@
 import cv2
 import numpy as np
 import math
+import time
 
 some_val = 0;
 
-cap = cv2.VideoCapture(0)
-while (cap.isOpened()):
-    # read image
-    ret, img = cap.read()
 
-    # get hand data from the rectangle sub window on the screen
-    cv2.rectangle(img, (300, 300), (100, 100), (0, 255, 0), 0)
-    crop_img = img[100:300, 100:300]
-    cv2.rectangle(img, (600, 600), (100, 100), (0, 255, 0), 0)
-    # convert to grayscale
-    grey = cv2.cvtColor(crop_img, cv2.COLOR_BGR2GRAY)
 
-    # applying gaussian blur
-    value = (35, 35)
-    blurred = cv2.GaussianBlur(grey, value, 0)
-
-    # thresholdin: Otsu's Binarization method
-    _, thresh1 = cv2.threshold(blurred, 127, 255,
-                               cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
-    # show thresholded image
-    cv2.imshow('Thresholded', thresh1)
-
-    # check OpenCV version to avoid unpacking error
-    (version, _, _) = cv2.__version__.split('.')
-    print version
-
-    '''
-    if version == '3':
-        image, contours, hierarchy = cv2.findContours(thresh1.copy(), \
-               cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-    '''
-    # if version == '2':
-    contours, hierarchy = cv2.findContours(thresh1.copy(), cv2.RETR_TREE, \
+def find_contour(thresh,crop_img):
+    contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_TREE, \
                                            cv2.CHAIN_APPROX_NONE)
 
     # find contour with max area
@@ -90,18 +61,60 @@ while (cap.isOpened()):
         # (can skip this part)
         cv2.line(crop_img, start, end, [0, 255, 0], 2)
         # cv2.circle(crop_img,far,5,[0,0,255],-1)
+    return count_defects,drawing
 
-    # define actions required
-    if count_defects == 1:
+
+
+cap = cv2.VideoCapture(0)
+while (cap.isOpened()):
+    # read image
+    ret, img = cap.read()
+    img2 = img
+    current_frame1 = cv2.flip(img, 1)
+    # get hand data from the rectangle sub window on the screen
+    cv2.rectangle(img, (300, 300), (100, 100), (0, 255, 0), 0)
+    crop_img = img[100:300, 100:300]
+    cv2.rectangle(img, (600, 300), (400,100), (0, 255, 0), 0)
+    crop_img2 = img2[100:300, 400:600]
+    cv2.imshow('crop_img',crop_img)
+    cv2.imshow('crop_img2',crop_img2)
+
+    # convert to grayscale
+    grey = cv2.cvtColor(crop_img,cv2.COLOR_BGR2GRAY)
+    grey2 = cv2.cvtColor(crop_img2,cv2.COLOR_BGR2GRAY)
+    # applying gaussian blur
+    value = (35, 35)
+    blurred = cv2.GaussianBlur(grey, value, 0)
+    blurred2 = cv2.GaussianBlur(grey2, value, 0)
+
+
+    # thresholdin: Otsu's Binarization method
+    _, thresh1 = cv2.threshold(blurred, 127, 255,
+                               cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    _, thresh2 = cv2.threshold(blurred2, 127, 255,
+                               cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    # show thresholded image
+    cv2.imshow('Thresholded1', thresh1)
+    cv2.imshow('Thresholded2', thresh2)
+
+    count_defects,drawing = find_contour(thresh1,crop_img)
+    count_defects2,drawing2 = find_contour(thresh2,crop_img2)
+    
+    if count_defects == 1 and count_defects2 == 1:
         some_val = 1;
-        cv2.putText(img, "This is 2", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
-    elif count_defects == 0:
-        cv2.putText(img, "This is 0", (50, 50), \
+        cv2.putText(img, "defect 1 detected", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
+    elif count_defects == 0 and count_defects2 == 0:
+        cv2.putText(img, "defect detected 0", (50, 50), \
                     cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
-        # print(some_val)
+        print(some_val)
         if (some_val == 1):
+
+            cv2.imwrite('./dataIMG/'+ str(time.time())+'.png',crop_img)
+            cv2.imshow('./dataIMG/'+ str(time.time())+'.png',current_frame1)
             print("Clicked")
-            some_val == 2;
+            some_val=2;
 
 
 
@@ -116,5 +129,15 @@ while (cap.isOpened()):
     cv2.imshow('Contours', all_img)
 
     k = cv2.waitKey(10)
-    if k == 27:
+    if k == ord('q'):
         break
+
+    
+
+
+
+
+
+
+
+
