@@ -5,7 +5,7 @@ import time
 
 some_val = 0;
 
-
+'''
 
 def find_contour(thresh,crop_img):
     contours, hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_TREE, \
@@ -63,12 +63,22 @@ def find_contour(thresh,crop_img):
         # cv2.circle(crop_img,far,5,[0,0,255],-1)
     return count_defects,drawing
 
-
-
-cap = cv2.VideoCapture(0)
-while (cap.isOpened()):
+'''
+p = [0,0,0]
+oldv = [0,0,0]
+#cap = cv2.VideoCapture(0)
+img = cv2.imread('a.jpeg')
+for i in xrange(1, 100):
+    for j in xrange(1, 100):
+        diff=(abs(oldv[2]-p[2]))
+        oldv =  p
+        p = img[i,j]
+        print(diff)
+'''
+#while (cap.isOpened()):
     # read image
-    ret, img = cap.read()
+
+    
     img2 = img
     current_frame1 = cv2.flip(img, 1)
     # get hand data from the rectangle sub window on the screen
@@ -76,8 +86,8 @@ while (cap.isOpened()):
     crop_img = img[100:300, 100:300]
     cv2.rectangle(img, (600, 300), (400,100), (0, 255, 0), 0)
     crop_img2 = img2[100:300, 400:600]
-    cv2.imshow('crop_img',crop_img)
-    cv2.imshow('crop_img2',crop_img2)
+    #cv2.imshow('crop_img',crop_img)
+    #cv2.imshow('crop_img2',crop_img2)
 
     # convert to grayscale
     grey = cv2.cvtColor(crop_img,cv2.COLOR_BGR2GRAY)
@@ -96,32 +106,35 @@ while (cap.isOpened()):
                                cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # show thresholded image
-    cv2.imshow('Thresholded1', thresh1)
-    cv2.imshow('Thresholded2', thresh2)
+    #cv2.imshow('Thresholded1', thresh1)
+    #cv2.imshow('Thresholded2', thresh2)
 
     count_defects,drawing = find_contour(thresh1,crop_img)
     count_defects2,drawing2 = find_contour(thresh2,crop_img2)
     
     if count_defects == 1 and count_defects2 == 1:
         some_val = 1;
+        print("hereknskdns")
         cv2.putText(img, "defect 1 detected", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
     elif count_defects == 0 and count_defects2 == 0:
         cv2.putText(img, "defect detected 0", (50, 50), \
                     cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
-        print(some_val)
-        if (some_val == 1):
-
-            cv2.imwrite('./dataIMG/'+ str(time.time())+'.png',crop_img)
-            cv2.imshow('./dataIMG/'+ str(time.time())+'.png',current_frame1)
-            print("Clicked")
-            some_val=2;
-
+        print(some_val);
+  
 
 
     else:
         some_val == 3;
         cv2.putText(img, "No gesture", (50, 50), \
                     cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
+    if (some_val == 1):
+        cv2.imwrite('./dataIMG/'+ str(time.time())+'.png',crop_img)
+        cv2.imshow('./dataIMG/'+ str(time.time())+'.png',current_frame1)
+        print("Clicked")
+        some_val=2;
+        time.sleep(0.5);
+        
+   
 
     # show appropriate images in windows
     cv2.imshow('Gesture', img)
@@ -135,7 +148,7 @@ while (cap.isOpened()):
     
 
 
-
+'''
 
 
 
